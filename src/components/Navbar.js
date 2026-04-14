@@ -25,7 +25,8 @@ export default async function Navbar() {
           
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <Link href="/profile" className={styles.navLink}>{user.username}</Link>
+              {/* <img src={user.avatarUrl} alt="avatar" className={styles.avatar} /> */}
+              <Link href={`/profile/${user.username}`} className={styles.navLink}>{user.username}</Link>
               <form action={logoutAction}>
                 <button type="submit" className={styles.navLinkBtn}>Logout</button>
               </form>
