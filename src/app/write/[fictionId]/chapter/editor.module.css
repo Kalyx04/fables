@@ -1,0 +1,149 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #0c0c0c;
+  color: #fff;
+}
+
+/* Top Bar */
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 2rem;
+  background: rgba(12, 12, 12, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  gap: 1rem;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0;
+  font-family: inherit;
+}
+
+.backBtn:hover { color: #fff; }
+
+.saveStatus {
+  font-size: 0.8rem;
+}
+
+.statusSaving { color: #888; }
+.statusSaved { color: #4ade80; }
+.statusError { color: #f87171; }
+
+.topActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.saveDraftBtn,
+.publishBtn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.saveDraftBtn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ddd;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.saveDraftBtn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.publishBtn {
+  background: #fff;
+  color: #000;
+}
+
+.publishBtn:hover:not(:disabled) {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+.publishBtn:disabled {
+  background: rgba(255,255,255,0.2);
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Editor Body */
+.editorBody {
+  flex: 1;
+  max-width: 780px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.chapterTitle {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.04em;
+  font-family: var(--font-geist-sans), sans-serif;
+  margin-bottom: 1rem;
+  caret-color: #fff;
+}
+
+.chapterTitle::placeholder { color: #333; }
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  margin: 1.5rem 0;
+}
+
+.editorLoading {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: #555;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.publishedBadge {
+  padding: 0.2rem 0.6rem;
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}

@@ -249,3 +249,50 @@
     gap: 0.5rem;
   }
 }
+
+/* Status Badges & Author View */
+.statusBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.statusDraft {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.statusPublished {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.statusModified {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+.editLink {
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+.emptyState {
+  padding: 4rem 2rem;
+  text-align: center;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  color: var(--text-secondary);
+}
+
+.emptyState h3 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+

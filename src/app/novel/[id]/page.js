@@ -1,26 +1,46 @@
 import styles from "./novel.module.css";
 import Link from 'next/link';
+import { getPublicFiction } from '@/lib/actions/fictionActions';
+import { getChapters } from '@/lib/actions/chapterActions';
+import { verifyToken } from '@/lib/auth';
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
 
 export default async function NovelPage({ params }) {
-  // Await the params properly for Next.js App Router dynamic routes
   const { id } = await params;
   
-  // Dummy data based on standard web novel structure
-  const novel = {
-    id: id,
-    title: "The Shadow's Heir",
-    author: "A. Void",
-    genre: "Fantasy",
-    rating: "4.8",
-    status: "Ongoing",
-    chaptersCount: 124,
-    views: "2.1M",
-    synopsis: "In a world where light is a luxury, the shadows hold power. Born without a single trace of incandescence, Kael was cast out by the radiant lords. Little do they know, the absence of light is not weakness—it is the domain of the Ancients. As the Sun-King's forces spread their blinding tyranny, Kael must harness the void to protect what little remains of the dusk.",
-    chapters: Array.from({ length: 15 }, (_, i) => ({
-      num: i + 1,
-      title: `The Awakening Part ${i + 1}`,
-      date: `Oct ${20 - i}, 2026`
-    })).reverse() // Simple dummy chapters
+  // 1. Fetch current session to check for authorship
+  const cookieStore = await cookies();
+  const token = cookieStore.get('fables_session')?.value;
+  const session = token ? await verifyToken(token) : null;
+
+  // 2. Fetch fiction and chapters in parallel
+  const [fictionRes, chaptersRes] = await Promise.all([
+    getPublicFiction(id),
+    getChapters(id, false) // Default to reader chapters (published only)
+  ]);
+
+  if (fictionRes.error || !fictionRes.fiction) {
+    return notFound();
+  }
+
+  const fiction = fictionRes.fiction;
+  const isAuthor = session && session.id === fiction.authorId._id;
+  
+  // 3. If author, fetch all chapters including drafts
+  let chapters = chaptersRes.chapters || [];
+  if (isAuthor) {
+    const authorChaptersRes = await getChapters(id, true);
+    chapters = authorChaptersRes.chapters || [];
+  }
+
+  const formatDate = (date) => {
+    if (!date) return '---';
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(new Date(date));
   };
 
   return (
@@ -30,31 +50,47 @@ export default async function NovelPage({ params }) {
         <div className={`container ${styles.headerLayout}`}>
           <div className={styles.coverHolder}>
             <div className={styles.coverPlaceholder}>
-              <span>{novel.title.charAt(0)}</span>
+              {fiction.coverUrl ? (
+                <img src={fiction.coverUrl} alt={fiction.title} />
+              ) : (
+                <span>{fiction.title.charAt(0)}</span>
+              )}
             </div>
           </div>
           
           <div className={styles.infoCol}>
             <div className={styles.titleArea}>
-              <h1 className={styles.title}>{novel.title}</h1>
-              <p className={styles.author}>by <span className={styles.authorName}>{novel.author}</span></p>
+              <h1 className={styles.title}>{fiction.title}</h1>
+              <p className={styles.author}>by <span className={styles.authorName}>{fiction.authorId.username}</span></p>
             </div>
             
             <div className={styles.metaRow}>
-              <div className={styles.metaBadge}>{novel.genre}</div>
-              <div className={styles.metaItem}><strong>★ {novel.rating}</strong> Rating</div>
-              <div className={styles.metaItem}><strong>{novel.views}</strong> Views</div>
-              <div className={styles.metaItem}><strong>{novel.status}</strong></div>
+              {fiction.genres?.map(genre => (
+                <div key={genre} className={styles.metaBadge}>{genre}</div>
+              ))}
+              <div className={styles.metaItem}><strong>★ {fiction.stats?.rating || '0.0'}</strong> Rating</div>
+              <div className={styles.metaItem}><strong>{fiction.stats?.views?.toLocaleString() || '0'}</strong> Views</div>
+              <div className={styles.metaItem}><strong style={{ textTransform: 'capitalize' }}>{fiction.status}</strong></div>
             </div>
 
             <div className={styles.synopsisArea}>
               <h3>Synopsis</h3>
-              <p className={styles.synopsis}>{novel.synopsis}</p>
+              <p className={styles.synopsis}>{fiction.synopsis || "No synopsis available."}</p>
             </div>
             
             <div className={styles.actions}>
-              <Link href={`/read/${novel.id}/1`} className={styles.primaryBtn}>Read First Chapter</Link>
-              <button className={styles.secondaryBtn}>Bookmark</button>
+              {chapters.length > 0 && chapters.some(c => c.publishedContent) ? (
+                <Link href={`/read/${fiction._id}/${chapters.find(c => c.publishedContent).order}`} className={styles.primaryBtn}>
+                  Read First Chapter
+                </Link>
+              ) : (
+                <button className={styles.primaryBtn} disabled>COMING SOON</button>
+              )}
+              {isAuthor && (
+                <Link href={`/write/${fiction._id}/chapter/new`} className={styles.secondaryBtn}>
+                  Add Chapter
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -65,28 +101,65 @@ export default async function NovelPage({ params }) {
         <div className={`container`}>
           <div className={styles.tocHeader}>
             <h2>Table of Contents</h2>
-            <span className={styles.chapterCount}>{novel.chaptersCount} Chapters</span>
+            <span className={styles.chapterCount}>{fiction.chapterCount} Chapters</span>
           </div>
           
           <div className={styles.chapterList}>
-            {novel.chapters.map((ch) => (
-              <Link href={`/read/${novel.id}/${ch.num}`} key={ch.num} className={styles.chapterRow}>
-                <div className={styles.chapLeft}>
-                  <span className={styles.chapNum}>Chapter {ch.num}</span>
-                  <span className={styles.chapTitle}>{ch.title}</span>
-                </div>
-                <div className={styles.chapRight}>
-                  <span className={styles.chapDate}>{ch.date}</span>
-                </div>
-              </Link>
-            ))}
+            {chapters.length > 0 ? (
+              chapters.map((ch) => {
+                const isPublished = !!ch.publishedContent;
+                const isModified = isPublished && JSON.stringify(ch.content) !== JSON.stringify(ch.publishedContent);
+                
+                return (
+                  <div key={ch._id} className={styles.chapterRow}>
+                    <div className={styles.chapLeft}>
+                      <span className={styles.chapNum}>CH {ch.order}</span>
+                      {isPublished ? (
+                        <Link href={`/read/${fiction._id}/${ch.order}`} className={styles.chapTitle}>
+                          {ch.publishedTitle || ch.title}
+                        </Link>
+                      ) : (
+                        <span className={styles.chapTitle} style={{ color: 'var(--text-secondary)' }}>
+                          {ch.title} (Draft)
+                        </span>
+                      )}
+                      
+                      {isAuthor && (
+                        <>
+                          {!isPublished && <span className={`${styles.statusBadge} ${styles.statusDraft}`}>Draft</span>}
+                          {isPublished && !isModified && <span className={`${styles.statusBadge} ${styles.statusPublished}`}>Published</span>}
+                          {isModified && <span className={`${styles.statusBadge} ${styles.statusModified}`}>Modified</span>}
+                        </>
+                      )}
+                    </div>
+                    
+                    <div className={styles.chapRight} style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+                      <span className={styles.chapDate}>{formatDate(ch.lastPublishedAt || ch.updatedAt)}</span>
+                      {isAuthor && (
+                        <Link href={`/write/${fiction._id}/chapter/${ch._id}`} className={styles.editLink}>
+                          Edit
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className={styles.emptyState}>
+                <h3>Coming Soon</h3>
+                <p>The author hasn't shared any chapters yet. Stay tuned!</p>
+              </div>
+            )}
             
-            <div className={styles.loadMore}>
-              <button className={styles.outlineBtn}>Load more chapters</button>
-            </div>
+            {chapters.length > 20 && (
+              <div className={styles.loadMore}>
+                <button className={styles.outlineBtn}>Load more chapters</button>
+              </div>
+            )}
           </div>
         </div>
       </section>
     </div>
   );
 }
+
