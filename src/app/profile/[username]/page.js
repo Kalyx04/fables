@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import styles from './page.module.css';
+import ProfileClient from './ProfileClient';
 
 export default async function ProfilePage({ params }) {
   const { username } = await params;
@@ -133,24 +134,11 @@ export default async function ProfilePage({ params }) {
         </aside>
 
         {/* Main Content Area */}
-        <main className={styles.mainContent}>
-          <div className={styles.tabs}>
-            <div className={`${styles.tab} ${styles.active}`}>Overview</div>
-            <div className={styles.tab}>Fictions</div>
-            <div className={styles.tab}>Reviews</div>
-            <div className={styles.tab}>Favorites</div>
-          </div>
-
-          <div className={styles.tabContent}>
-            {/* For MVP, just an empty state in Overview */}
-            <div className={styles.glassCard}>
-              <div className={styles.emptyState}>
-                <h3>Nothing to see here yet.</h3>
-                <p>This user hasn't published any fictions or written any activities recently.</p>
-              </div>
-            </div>
-          </div>
-        </main>
+        <ProfileClient 
+          userId={user._id} 
+          username={user.username} 
+          isOwner={isOwner} 
+        />
       </div>
     </div>
   );

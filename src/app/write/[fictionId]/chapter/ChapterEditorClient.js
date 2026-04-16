@@ -117,9 +117,11 @@ export default function ChapterEditorClient({ fictionId, initialChapter }) {
           <button
             onClick={handlePublish}
             className={styles.publishBtn}
-            disabled={isPublishing || isPublished}
+            disabled={isPublishing}
           >
-            {isPublished ? '✓ Published' : isPublishing ? 'Publishing…' : 'Publish'}
+            {isPublished 
+              ? (isPublishing ? 'Updating...' : 'Update Published') 
+              : (isPublishing ? 'Publishing...' : 'Publish')}
           </button>
         </div>
       </header>

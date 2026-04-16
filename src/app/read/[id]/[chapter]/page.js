@@ -3,11 +3,20 @@ import Link from 'next/link';
 import { getChapterForRead } from '@/lib/actions/chapterActions';
 import ChapterContent from '@/components/ChapterContent';
 import { notFound } from 'next/navigation';
+import ReaderUI from '@/components/ReaderUI';
+import ChapterReviewForm from '@/components/ChapterReviewForm';
+import ReviewSection from '@/components/ReviewSection';
+import { verifyToken } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 export default async function ReadPage({ params }) {
   const { id, chapter } = await params;
   
   const result = await getChapterForRead(id, chapter);
+  
+  const cookieStore = await cookies();
+  const token = cookieStore.get('fables_session')?.value;
+  const session = token ? await verifyToken(token) : null;
   
   if (result.error || !result.chapter) {
     return notFound();
@@ -36,7 +45,15 @@ export default async function ReadPage({ params }) {
         </header>
 
         <div className={styles.content}>
-          <ChapterContent content={chapterData.publishedContent} />
+          <ReaderUI fictionId={id} chapterId={chapterData._id} userId={session?.id}>
+            <ChapterContent content={chapterData.publishedContent} />
+          </ReaderUI>
+        </div>
+
+        {/* Chapter Reviews */}
+        <div className="container">
+          <ChapterReviewForm fictionId={id} chapterId={chapterData._id} />
+          <ReviewSection fictionId={id} chapterId={chapterData._id} type="chapter" currentUser={session} />
         </div>
       </article>
 

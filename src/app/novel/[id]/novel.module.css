@@ -17,15 +17,15 @@
 }
 
 .coverHolder {
-  width: 280px;
+  width: 260px;
   flex-shrink: 0;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  background: #111; /* Dark backdrop for contained images */
 }
 
 .coverPlaceholder {
-  aspect-ratio: 2/3;
   width: 100%;
   background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   display: flex;
@@ -34,6 +34,16 @@
   color: var(--bg-primary);
   font-size: 8rem;
   font-weight: 800;
+  position: relative;
+  min-height: 380px;
+}
+
+.coverPlaceholder img {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  object-fit: contain;
+  display: block;
 }
 
 .infoCol {

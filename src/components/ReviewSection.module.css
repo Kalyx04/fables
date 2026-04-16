@@ -1,0 +1,23 @@
+.section {
+  margin-top: 3rem;
+  padding-bottom: 5rem;
+}
+
+.count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-secondary);
+}

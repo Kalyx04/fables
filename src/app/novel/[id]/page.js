@@ -5,6 +5,11 @@ import { getChapters } from '@/lib/actions/chapterActions';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
+import FavoriteButton from '@/components/FavoriteButton';
+import { getFavoriteStatus } from '@/lib/actions/favoriteActions';
+import StarRating from '@/components/StarRating';
+import FictionReviewForm from '@/components/FictionReviewForm';
+import ReviewSection from '@/components/ReviewSection';
 
 export default async function NovelPage({ params }) {
   const { id } = await params;
@@ -15,9 +20,10 @@ export default async function NovelPage({ params }) {
   const session = token ? await verifyToken(token) : null;
 
   // 2. Fetch fiction and chapters in parallel
-  const [fictionRes, chaptersRes] = await Promise.all([
+  const [fictionRes, chaptersRes, favoriteRes] = await Promise.all([
     getPublicFiction(id),
-    getChapters(id, false) // Default to reader chapters (published only)
+    getChapters(id, false), // Default to reader chapters (published only)
+    getFavoriteStatus(id)
   ]);
 
   if (fictionRes.error || !fictionRes.fiction) {
@@ -68,7 +74,12 @@ export default async function NovelPage({ params }) {
               {fiction.genres?.map(genre => (
                 <div key={genre} className={styles.metaBadge}>{genre}</div>
               ))}
-              <div className={styles.metaItem}><strong>★ {fiction.stats?.rating || '0.0'}</strong> Rating</div>
+              <div className={styles.metaItem}>
+                <strong>
+                  <StarRating rating={Math.round(fiction.stats?.rating || 0)} readOnly />
+                </strong> 
+                {fiction.stats?.rating || '0.0'} ({fiction.stats?.ratingCount || 0} reviews)
+              </div>
               <div className={styles.metaItem}><strong>{fiction.stats?.views?.toLocaleString() || '0'}</strong> Views</div>
               <div className={styles.metaItem}><strong style={{ textTransform: 'capitalize' }}>{fiction.status}</strong></div>
             </div>
@@ -90,6 +101,9 @@ export default async function NovelPage({ params }) {
                 <Link href={`/write/${fiction._id}/chapter/new`} className={styles.secondaryBtn}>
                   Add Chapter
                 </Link>
+              )}
+              {!isAuthor && session && (
+                <FavoriteButton fictionId={fiction._id} initialFavorited={favoriteRes.favorited} />
               )}
             </div>
           </div>
@@ -157,6 +171,14 @@ export default async function NovelPage({ params }) {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section className={styles.reviewsSection}>
+        <div className="container">
+          <FictionReviewForm fictionId={id} />
+          <ReviewSection fictionId={id} type="fiction" currentUser={session} />
         </div>
       </section>
     </div>

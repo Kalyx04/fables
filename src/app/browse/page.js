@@ -4,14 +4,16 @@ import { getFictions } from "@/lib/actions/fictionActions";
 
 export default async function Browse({ searchParams }) {
   const queryParams = await searchParams;
-  const currentGenre = queryParams.genre || "All";
-  const searchQuery = queryParams.q || "";
+
+  // Normalize parameters to strings (Next.js 15 can provide arrays)
+  const searchQuery = Array.isArray(queryParams.q) ? queryParams.q[0] : (queryParams.q || "");
+  const currentGenre = Array.isArray(queryParams.genre) ? queryParams.genre[0] : (queryParams.genre || "All");
 
   const categories = ["All", "Action", "Fantasy", "Sci-Fi", "Romance", "Mystery", "Horror", "Adventure"];
-  
-  const { fictions, error } = await getFictions({ 
-    genre: currentGenre, 
-    q: searchQuery 
+
+  const { fictions, error } = await getFictions({
+    genre: currentGenre,
+    q: searchQuery
   });
 
   return (
@@ -20,25 +22,26 @@ export default async function Browse({ searchParams }) {
         <div className="container">
           <h1 className={styles.title}>Directory</h1>
           <p className={styles.subtitle}>Explore our extensive collection of fables.</p>
-          
+
           <form action="/browse" method="GET" className={styles.searchBar}>
             {currentGenre !== 'All' && <input type="hidden" name="genre" value={currentGenre} />}
-            <input 
-              type="text" 
-              name="q" 
-              placeholder="Search by title or synopsis..." 
+            <input
+              type="text"
+              name="q"
+              placeholder="Search by title or synopsis..."
               className={styles.searchInput}
               defaultValue={searchQuery}
             />
             <button type="submit" className={styles.searchIcon}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y1="16.65"></line>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
             </button>
           </form>
         </div>
       </header>
+
 
       <div className={`container ${styles.layout}`}>
         {/* Filters Sidebar */}
@@ -50,12 +53,12 @@ export default async function Browse({ searchParams }) {
                 const isActive = currentGenre === cat;
                 return (
                   <li key={cat}>
-                    <Link 
+                    <Link
                       href={{
                         pathname: '/browse',
-                        query: { 
+                        query: {
                           ...(cat !== 'All' ? { genre: cat } : {}),
-                          ...(searchQuery ? { q: searchQuery } : {}) 
+                          ...(searchQuery ? { q: searchQuery } : {})
                         }
                       }}
                       className={isActive ? styles.activeFilter : styles.filterBtn}
@@ -88,7 +91,7 @@ export default async function Browse({ searchParams }) {
                       <span className={styles.rating}>★ {novel.stats?.rating || '0.0'}</span>
                     </div>
                     <p className={styles.cardAuthor}>by {novel.authorId?.username || 'Anonymous'}</p>
-                    
+
                     <div className={styles.cardDetails}>
                       {novel.genres?.[0] && <span className={styles.badge}>{novel.genres[0]}</span>}
                       <span className={styles.infoText}>{novel.chapterCount || 0} Chapters</span>
@@ -101,12 +104,20 @@ export default async function Browse({ searchParams }) {
           ) : (
             <div className={styles.emptyState}>
               <h2>No fables found</h2>
-              <p>We couldn't find any fables matching "{searchQuery || currentGenre}".</p>
+              <p>
+                We couldn't find any fables matching
+                {searchQuery && <strong> "{searchQuery}"</strong>}
+                {searchQuery && currentGenre !== 'All' && ' in '}
+                {currentGenre !== 'All' && <strong>{currentGenre}</strong>}
+                {!searchQuery && currentGenre === 'All' && ' your search'}
+                .
+              </p>
               <Link href="/browse" className={styles.clearBtn}>
                 Clear all filters
               </Link>
             </div>
           )}
+
         </main>
       </div>
     </div>

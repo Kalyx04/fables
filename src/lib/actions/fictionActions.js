@@ -90,6 +90,29 @@ export async function getUserFictions() {
 }
 
 /**
+ * Fetches fictions authored by a specific user for their public profile.
+ */
+export async function getPublicUserFictions(authorId) {
+  try {
+    await connectToDatabase();
+    const fictions = await Fiction.find({ authorId, status: { $ne: 'draft' } })
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    return {
+      fictions: fictions.map((f) => ({
+        ...f,
+        _id: f._id.toString(),
+        authorId: f.authorId.toString(),
+      })),
+    };
+  } catch (error) {
+    console.error('getPublicUserFictions error:', error);
+    return { error: 'Failed' };
+  }
+}
+
+/**
  * Fetches a single fiction by ID (verifies ownership).
  */
 export async function getFiction(fictionId) {
@@ -155,16 +178,20 @@ export async function getFictions({ genre, q }) {
   try {
     await connectToDatabase();
 
+    // Ensure parameters are strings (Next.js 15 searchParams can be arrays)
+    const genreStr = Array.isArray(genre) ? genre[0] : genre;
+    const searchStr = Array.isArray(q) ? q[0] : q;
+
     let query = { status: { $ne: 'draft' } };
 
-    if (genre && genre !== 'All') {
-      query.genres = genre;
+    if (genreStr && genreStr !== 'All') {
+      query.genres = genreStr;
     }
 
-    if (q) {
+    if (searchStr) {
       query.$or = [
-        { title: { $regex: q, $options: 'i' } },
-        { synopsis: { $regex: q, $options: 'i' } }
+        { title: { $regex: searchStr, $options: 'i' } },
+        { synopsis: { $regex: searchStr, $options: 'i' } }
       ];
     }
 
@@ -177,13 +204,14 @@ export async function getFictions({ genre, q }) {
       fictions: fictions.map((f) => ({
         ...f,
         _id: f._id.toString(),
-        authorId: {
+        authorId: f.authorId ? {
           ...f.authorId,
           _id: f.authorId._id.toString(),
-        },
+        } : null,
       })),
     };
   } catch (error) {
+
     console.error('getFictions error:', error);
     return { error: 'Failed to fetch fictions' };
   }

@@ -49,10 +49,9 @@ const FictionSchema = new mongoose.Schema(
     },
     stats: {
       views: { type: Number, default: 0 },
-      followers: { type: Number, default: 0 },
-      favorites: { type: Number, default: 0 },
       rating: { type: Number, default: 0 },
       ratingCount: { type: Number, default: 0 },
+      favorites: { type: Number, default: 0 },
     },
   },
   { timestamps: true }

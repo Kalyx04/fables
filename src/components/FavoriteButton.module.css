@@ -1,0 +1,35 @@
+.favBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 2rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.favBtn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.favBtn:hover {
+  border-color: #ff4757;
+  color: #ff4757;
+}
+
+.favBtn.active {
+  background-color: #ff4757;
+  border-color: #ff4757;
+  color: white;
+}
+
+.favBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
