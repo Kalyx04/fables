@@ -46,13 +46,19 @@ export async function addReview({ fictionId, chapterId, type, content, rating, t
     // If it's a fiction review, update the fiction's average rating
     if (!chapterId || type === 'fiction') {
       const allFictionReviews = await Review.find({ fictionId, type: 'fiction' });
-      const totalRatings = allFictionReviews.reduce((sum, r) => sum + (r.rating || 0), 0);
       const ratingCount = allFictionReviews.length;
-      const averageRating = totalRatings / ratingCount;
+      let averageRating = 0;
+      
+      if (ratingCount > 0) {
+        const totalRatings = allFictionReviews.reduce((sum, r) => sum + (r.rating || 0), 0);
+        averageRating = totalRatings / ratingCount;
+      }
 
       await Fiction.findByIdAndUpdate(fictionId, {
-        'stats.rating': averageRating.toFixed(1),
-        'stats.ratingCount': ratingCount
+        $set: {
+          'stats.rating': parseFloat(averageRating.toFixed(1)),
+          'stats.ratingCount': ratingCount
+        }
       });
     }
 

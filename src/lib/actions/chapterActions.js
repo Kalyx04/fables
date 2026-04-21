@@ -204,6 +204,9 @@ export async function getChapterForRead(fictionId, order) {
 
     if (!chapter) return { error: 'Chapter not found' };
 
+    // Increment fiction view count
+    await Fiction.findByIdAndUpdate(fictionId, { $inc: { 'stats.views': 1 } });
+
     const fiction = await Fiction.findById(fictionId, 'title').lean();
 
     return {

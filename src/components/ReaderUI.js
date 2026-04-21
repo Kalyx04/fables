@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import styles from './ReaderUI.module.css';
 import { addInlineComment, getChapterComments } from '@/lib/actions/commentActions';
+import { useReader } from './ReaderProvider';
 
 export default function ReaderUI({ fictionId, chapterId, children, userId }) {
   const [selectedText, setSelectedText] = useState('');
@@ -12,6 +13,8 @@ export default function ReaderUI({ fictionId, chapterId, children, userId }) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
   const contentRef = useRef(null);
+
+  const { settings, isMounted } = useReader();
 
   // Load comments on mount
   useEffect(() => {
@@ -74,11 +77,9 @@ export default function ReaderUI({ fictionId, chapterId, children, userId }) {
     });
 
     if (!res.error) {
-      // Refresh local comments
       const updated = await getChapterComments(chapterId);
       if (updated.comments) setComments(updated.comments);
       
-      // Cleanup
       setShowCommentInput(false);
       setPopoverPos(null);
       setCommentText('');
@@ -88,8 +89,15 @@ export default function ReaderUI({ fictionId, chapterId, children, userId }) {
     }
   };
 
+  if (!isMounted) {
+    return <div style={{ opacity: 0 }}>{children}</div>;
+  }
+
   return (
-    <div className={styles.readerWrapper} ref={contentRef}>
+    <div 
+      className={styles.readerWrapper} 
+      ref={contentRef}
+    >
       {children}
 
       {/* Popover Button */}
@@ -123,14 +131,7 @@ export default function ReaderUI({ fictionId, chapterId, children, userId }) {
         </div>
       )}
 
-      {/* Inline Markers (simplified for MVP: show a bubble next to paragraphs with comments) */}
-      {comments.map((comment, i) => {
-        // We can't easily find the position again perfectly without complex refs, 
-        // so we'll just show them in a sidebar or grouped by paragraph.
-        return null; // For now
-      })}
-      
-      {/* Side Panel for comments (Desktop only ideally) */}
+      {/* Side Panel for comments */}
       <div className={styles.sideComments}>
         {comments.length > 0 && <h4>Comments ({comments.length})</h4>}
         {comments.map(c => (

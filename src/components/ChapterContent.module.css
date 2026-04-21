@@ -1,8 +1,9 @@
 .content {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 1.25rem;
+  font-family: var(--reader-font, Georgia, 'Times New Roman', Times, serif);
+  font-size: var(--reader-size, 1.25rem);
   line-height: 1.8;
-  color: var(--text-primary);
+  color: var(--reader-color, var(--text-primary));
+  transition: font-size 0.3s ease, color 0.3s ease;
 }
 
 .content p {
@@ -28,3 +29,5 @@
   text-underline-offset: 4px;
   color: inherit;
 }
+
+
